@@ -404,16 +404,25 @@
       .assistant-response h3 { font-size: 1.1rem; }
 
       .assistant-response p {
-        margin: 0.5rem 0;
+        margin: 0.3rem 0;
+      }
+
+      .assistant-response p:first-child {
+        margin-top: 0;
+      }
+
+      .assistant-response p:last-child {
+        margin-bottom: 0;
       }
 
       .assistant-response ul, .assistant-response ol {
-        margin: 0.5rem 0;
+        margin: 0.3rem 0;
         padding-left: 1.5rem;
       }
 
       .assistant-response li {
-        margin: 0.25rem 0;
+        margin: 0.1rem 0;
+        line-height: 1.4;
       }
 
       .assistant-response code {
@@ -440,7 +449,7 @@
 
       .assistant-response blockquote {
         border-left: 4px solid #e5e7eb;
-        margin: 1rem 0;
+        margin: 0.3rem 0;
         padding-left: 1rem;
         color: #6b7280;
       }
@@ -1131,9 +1140,25 @@
 
       // Configure marked for better rendering
       marked.setOptions({
-        breaks: true,
+        breaks: false, // Disable automatic line break conversion to reduce spacing
         gfm: true
       })
+
+      // Function to clean up markdown spacing issues
+      const cleanMarkdown = (text) => {
+        return text
+          // Replace multiple consecutive newlines with double newlines (for paragraph breaks)
+          .replace(/\n{3,}/g, '\n\n')
+          // Remove trailing whitespace from lines
+          .replace(/[ \t]+$/gm, '')
+          // Clean up extra spaces before newlines
+          .replace(/[ \t]+\n/g, '\n')
+          // Remove excessive spacing around blockquotes
+          .replace(/\n\n>/g, '\n>')
+          .replace(/>\n\n/g, '>\n')
+          // Trim start/end whitespace
+          .trim()
+      }
 
                   let cleanResponse = '' // The response without thinking tags
 
@@ -1436,8 +1461,9 @@
               accumulatedMarkdown += displayToken
               const assistantResponseDiv = output.querySelector('.assistant-response')
               if (assistantResponseDiv) {
-                // Render the accumulated markdown
-                assistantResponseDiv.innerHTML = marked.parse(accumulatedMarkdown)
+                // Clean and render the accumulated markdown
+                const cleanedMarkdown = cleanMarkdown(accumulatedMarkdown)
+                assistantResponseDiv.innerHTML = marked.parse(cleanedMarkdown)
                 output.scrollTop = output.scrollHeight
               }
             }
